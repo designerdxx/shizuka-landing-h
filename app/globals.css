@@ -72,6 +72,20 @@ body{margin:0;background:#ECE5DD}
 @keyframes settle{from{transform:scale(1.06)}to{transform:none}}
 @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
+/* stacking: in each .stack the first section holds still (or holds its last screenful, if it is taller than the window)
+   while the next slides up over it, rounded at the top with a soft shadow. --cover (0 to 1, set on the stack) is how much
+   is covered; it is scroll-linked, so everything moves exactly with the page and never on its own. */
+.stack{position:relative}
+.stack>:first-child{position:sticky;top:var(--stick,0px);z-index:0}
+.stack>:last-child{position:relative;z-index:1;border-radius:28px 28px 0 0}
+/* 1: the chauffeur band over the hero, which dims and steps back */
+.hero::before{content:"";position:absolute;inset:0;z-index:3;background:#16100C;opacity:calc(var(--cover,0)*.5);pointer-events:none}
+.hero-t{transform:scale(calc(1 - var(--cover,0)*.04));transform-origin:50% 0;opacity:calc(1 - var(--cover,0)*.5)}
+.s1>.glove{box-shadow:0 -24px 60px rgba(20,14,10,.3)}
+/* 2: the step player rises over the privacy statement as an ivory sheet; the statement recedes behind it */
+.priv-in{transform:scale(calc(1 - var(--cover,0)*.05));transform-origin:50% 40%;opacity:calc(1 - var(--cover,0)*.7)}
+.s2>.how{background:#F7F2EC;box-shadow:0 -1px 0 rgba(43,34,28,.06),0 -22px 56px rgba(43,34,28,.13)}
+
 /* the WhatsApp pill that stays with you */
 .dock{position:sticky;bottom:24px;z-index:9;display:flex;justify-content:center;height:0;pointer-events:none}
 .dock a{pointer-events:auto;position:relative;top:-70px;display:inline-flex;align-items:center;gap:22px;height:48px;padding:0 20px;border-radius:999px;background:var(--dark);color:var(--ivory);font-size:14px;
@@ -98,7 +112,7 @@ body{margin:0;background:#ECE5DD}
 .priv p{max-width:44ch;margin:28px auto 0;color:var(--mute)}
 
 /* the step player: I II III IV */
-.how{padding:clamp(120px,11cqi,160px) var(--g) 0}
+.how{padding:clamp(120px,11cqi,160px) var(--g)}
 .how h2{max-width:18ch;margin:0 auto;font-size:clamp(38px,3.9cqi,56px)}
 .stage{position:relative;width:min(100%,620px);aspect-ratio:3/2;margin:44px auto 0;overflow:hidden;background:var(--bg2)}
 .stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.03);transition:opacity 200ms var(--in),transform 200ms var(--in)}
@@ -119,7 +133,7 @@ body{margin:0;background:#ECE5DD}
 @keyframes fill{to{transform:none}}
 
 /* founder, over a full-bleed photo */
-.fq{position:relative;margin-top:clamp(120px,11cqi,160px);min-height:clamp(640px,56cqi,800px);display:grid;place-items:center;overflow:hidden;color:var(--ivory)}
+.fq{position:relative;min-height:clamp(640px,56cqi,800px);display:grid;place-items:center;overflow:hidden;color:var(--ivory)}
 .fq img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:56% 30%}
 .fq::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(28,22,17,.78),rgba(28,22,17,.42))}
 .fq div{position:relative;z-index:2;max-width:880px;padding:96px var(--g)}
@@ -167,10 +181,30 @@ body{margin:0;background:#ECE5DD}
 
 [data-r]{transition:opacity 900ms var(--out) var(--d,0ms),transform 900ms var(--out) var(--d,0ms)}
 
+/* reveals, in beats. Headings rise, then their italic phrase arrives 180ms later (follow-through). Photos open like an
+   aperture while the picture settles inside the widening frame (secondary action, on `scale` so hover transforms stay free).
+   Cards keep their 50ms stagger. All ease out: they arrive quickly and settle. */
+.gd[data-r] em{transition:opacity 700ms var(--out) calc(var(--d,0ms) + 180ms)}
+.hh[data-armed] .gd[data-r]:not([data-in]) em{opacity:0}
+.priv figure,.stage,.trio .ph{clip-path:inset(0 0 0 0);transition:opacity 900ms var(--out) var(--d,0ms),transform 900ms var(--out) var(--d,0ms),clip-path 1100ms var(--out) var(--d,0ms)}
+.trio .ph{transition:clip-path 1100ms var(--out) var(--d,0ms)}
+.hh[data-armed] :is(.priv figure,.stage):not([data-in]),.hh[data-armed] .trio a:not([data-in]) .ph{clip-path:inset(12% 9% 12% 9%)}
+.priv figure img,.stage img,.trio img{scale:1}
+.priv figure img{transition:scale 1300ms var(--out)}
+.stage img{transition:opacity 200ms var(--in),transform 200ms var(--in),scale 1300ms var(--out)}
+.stage img.on{transition:opacity 300ms var(--out),transform 300ms var(--out),scale 1300ms var(--out)}
+.trio img{transition:transform 240ms var(--in),scale 1300ms var(--out) var(--d,0ms)}
+.trio a:hover img{transition:transform 280ms var(--out),scale 1300ms var(--out)}
+.hh[data-armed] :is(.priv figure,.stage):not([data-in]) img,.hh[data-armed] .trio a:not([data-in]) img{scale:1.14}
+/* the founder's photo drifts a little slower than the page (scroll-linked, so it maps 1:1 to the scroll position) */
+@supports (animation-timeline: view()){
+  .fq img{inset:-9% 0 auto;height:118%;animation:drift linear both;animation-timeline:view();animation-range:cover}
+  @keyframes drift{from{transform:translateY(-7%)}to{transform:translateY(7%)}}
+}
+
 /* press states: every control gives under the finger (scale 0.94–0.99, 120ms) */
 .roman button:active{transform:scale(.94);transition:transform 120ms var(--std)}
-.trio a{transition:transform 120ms var(--std)}
-.trio a:active{transform:scale(.99)}
+.trio a:active{transform:scale(.99);transition:transform 120ms var(--std)}
 .qa button:active{transform:scale(.99);transition:transform 120ms var(--std)}
 
 /* ---------- phone ---------- */
@@ -194,7 +228,9 @@ body{margin:0;background:#ECE5DD}
   .glove p{bottom:96px;font-size:16px}
   .priv h2,.how h2,.buy h2,.rev h2,.faq h2{font-size:36px}
   .priv,.how,.buy,.rev,.faq{padding-top:96px}
-  .fq{margin-top:96px;min-height:640px}
+  .fq{min-height:640px}
+  .how{padding-bottom:96px}
+  .stack>:last-child{border-radius:20px 20px 0 0}
   .fq blockquote{font-size:25px}
   .trio{grid-template-columns:1fr;gap:40px}
   .rev-g{grid-template-columns:1fr;gap:40px}
@@ -202,9 +238,14 @@ body{margin:0;background:#ECE5DD}
   .roman .seg{width:28px}
 }
 @media (prefers-reduced-motion: reduce){
+  .hero-t{transform:none}
   .h1 .ln,.hero-t p,.acts,.facts,.hero>img{animation:none}
   .roman .seg.on::after{animation:none;transform:scaleX(.5)}
   .stage img,.stage img.on{transform:none}
+  .priv-in{transform:none}
+  .hh[data-armed] :is(.priv figure,.stage):not([data-in]),.hh[data-armed] .trio a:not([data-in]) .ph{clip-path:inset(0 0 0 0)}
+  .priv figure img,.stage img,.trio img,.hh[data-armed] :is(.priv figure,.stage):not([data-in]) img,.hh[data-armed] .trio a:not([data-in]) img{scale:1}
+  .fq img{animation:none;inset:0;height:100%}
 }
 
 /* menu open: the header (and its Close button) stays pinned above the overlay */
