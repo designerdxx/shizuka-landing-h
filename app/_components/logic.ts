@@ -45,15 +45,49 @@ export function useSite() {
   const closeMenu = useCallback(() => setMenu(false), []);
   const [step, setStep] = useState(0);
   const [cycle, setCycle] = useState(0);
-  // The step player advances on its own every 5.2s; a click jumps there and restarts the count.
+  const [pinned, setPinned] = useState(false);
+  const howGo = useRef<((i: number) => boolean) | null>(null);
+  // Without a pinned player (a very tall window) it advances on its own every 5.2s; a click jumps there and restarts the count.
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (pinned || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const t = setInterval(() => setStep((s) => (s + 1) % 4), 5200);
     return () => clearInterval(t);
-  }, [cycle]);
+  }, [cycle, pinned]);
+  // The step player holds, filling the screen, for half a screen of scrolling per step and the steps follow the scroll,
+  // so all four are seen before the page moves on; the lines between numerals fill with --p. A numeral scrolls to its step.
+  useEffect(() => {
+    const track = rootRef.current?.querySelector<HTMLElement>(".how-track");
+    const how = track?.querySelector<HTMLElement>(".how");
+    if (!track || !how) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let raf = 0, last = -1, run = 0, top0 = 0;
+    const measure = () => {
+      raf = 0;
+      const wh = window.innerHeight, pin = wh <= 1400;
+      track.toggleAttribute("data-pin", pin);
+      setPinned(pin);
+      run = pin ? Math.round(wh * 0.5 * 4) : 0;
+      top0 = pin ? Math.min(0, wh - how.offsetHeight) : 0;
+      track.style.setProperty("--run", run + "px");
+      track.style.setProperty("--htop", top0 + "px");
+      const p = run ? Math.min(1, Math.max(0, (top0 - track.getBoundingClientRect().top) / run)) : 0;
+      track.style.setProperty("--p", p.toFixed(3));
+      if (run) { const s = Math.min(3, Math.floor(p * 4)); if (s !== last) { last = s; setStep(s); } }
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(measure); };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    measure();
+    howGo.current = (i: number) => {
+      if (!run) return false;
+      const y = window.scrollY + track.getBoundingClientRect().top - top0 + (run * (i + 0.5)) / 4;
+      window.scrollTo({ top: Math.round(y), behavior: reduce ? "auto" : "smooth" });
+      return true;
+    };
+    return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); if (raf) cancelAnimationFrame(raf); howGo.current = null; };
+  }, []);
   // Stacks: each .stack holds its first section while the next slides over it. --stick lets a section taller than the
-  // window scroll to its end before it holds; --cover (0 to 1) is how much of it is covered. The floating WhatsApp pill
-  // appears once the chauffeur band has covered half the hero (the hero has its own call to action).
+  // window scroll to its end before it holds; --cover (0 to 1) is how much of it is covered.
   useEffect(() => {
     const root = rootRef.current;
     const stacks = root ? Array.from(root.querySelectorAll<HTMLElement>(".stack")) : [];
@@ -62,12 +96,11 @@ export function useSite() {
     const measure = () => {
       raf = 0;
       const wh = window.innerHeight;
-      stacks.forEach((s, n) => {
+      stacks.forEach((s) => {
         const base = s.firstElementChild as HTMLElement, over = s.lastElementChild as HTMLElement;
         const bh = base.offsetHeight, view = Math.min(bh, wh), top = over.getBoundingClientRect().top;
         s.style.setProperty("--stick", Math.min(0, wh - bh) + "px");
         s.style.setProperty("--cover", Math.min(1, Math.max(0, 1 - top / view)).toFixed(3));
-        if (n === 0) root.toggleAttribute("data-past", top < view * 0.5);
       });
     };
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(measure); };
@@ -98,7 +131,7 @@ export function useSite() {
       v["sh" + i] = i === step ? "false" : "true";
       v["rb" + i] = i === step ? "on" : "";
       v["rp" + i] = i === step ? "true" : "false";
-      v["go" + i] = () => { setStep(i); setCycle((c) => c + 1); };
+      v["go" + i] = () => { if (howGo.current?.(i)) return; setStep(i); setCycle((c) => c + 1); };
       if (i < 3) v["sg" + i] = "seg" + (i < step ? " done" : i === step ? " on" : "");
     }
     return v;
