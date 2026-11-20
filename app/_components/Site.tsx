@@ -17,6 +17,7 @@ export function Site() {
     <a className="chip" href="#h-faq">FAQ</a>
   </header>
   <main>
+  <div className="stack s1">
   <section className="hero" id="h-top" aria-labelledby="h-h1">
     <img src={asset("/images/hero.jpg")} alt="Seen from above: a black quilted handbag on a cream boucl\u00e9 sofa, beside a hand wearing a ring and a gold watch" />
     <div className="hero-t c">
@@ -32,11 +33,13 @@ export function Site() {
     <h2 className="gd" id="h-glove-h" data-r="">Collected by a chauffeur, <em>in white gloves.</em></h2>
     <p data-r="">Nothing to carry, nowhere to go. Your pieces are kept safe while your account manager gathers bids.</p>
   </section>
-  <section className="priv c" aria-labelledby="h-priv-h">
+  </div>
+  <div className="stack s2">
+  <section className="priv c" aria-labelledby="h-priv-h"><div className="priv-in">
     <h2 className="gd" id="h-priv-h" data-r="">For the pieces and moments where <em>privacy</em> matters most.</h2>
     <figure data-r=""><img src={asset("/images/cat-jewellery.jpg")} alt="A woman in a black dress wearing a diamond ring and a gold watch" style={{objectPosition: "50% 36%"} as CSSProperties} /></figure>
     <p data-r="">Your piece is offered to professional buyers in our network, never on a public marketplace.</p>
-  </section>
+  </div></section>
 
   <section className="how c" id="h-how" aria-labelledby="h-how-h">
     <h2 className="gd" id="h-how-h" data-r="">Four steps, <em>one message</em> to begin.</h2>
@@ -44,6 +47,7 @@ export function Site() {
     <div className="cap" aria-live="polite"><div className={v.st0} aria-hidden={v.sh0}><h3>Request a valuation</h3><p>Send photos and details on WhatsApp. We’ll reply with a valuation range, subject to authentication.</p></div><div className={v.st1} aria-hidden={v.sh1}><h3>Collect & authenticate</h3><p>We’ll arrange white-glove collection of your items and authenticate them in-house.</p></div><div className={v.st2} aria-hidden={v.sh2}><h3>Offers from our buyer network</h3><p>Once your item is authenticated, we invite offers from professional buyers to get you a competitive price.</p></div><div className={v.st3} aria-hidden={v.sh3}><h3>Accept the proposal</h3><p>If you’re happy with the best offer, accept it and the funds reach your account within 48 hours.</p></div></div>
     <div className="roman" role="group" aria-label="Steps"><button type="button" className={v.rb0} aria-label="Step 1: Request a valuation" aria-pressed={v.rp0} onClick={v.go0}>I</button><span className={v.sg0} aria-hidden="true"></span><button type="button" className={v.rb1} aria-label="Step 2: Collect & authenticate" aria-pressed={v.rp1} onClick={v.go1}>II</button><span className={v.sg1} aria-hidden="true"></span><button type="button" className={v.rb2} aria-label="Step 3: Offers from our buyer network" aria-pressed={v.rp2} onClick={v.go2}>III</button><span className={v.sg2} aria-hidden="true"></span><button type="button" className={v.rb3} aria-label="Step 4: Accept the proposal" aria-pressed={v.rp3} onClick={v.go3}>IV</button></div>
   </section>
+  </div>
   <section className="fq c" id="h-about" aria-labelledby="h-fq-h">
     <img src={asset("/images/founder-band.jpg")} alt="Shivam Agarwal, founder and CEO of Shizuka Luxury, in the Shizuka office" loading="lazy" />
     <div data-r=""><h2 className="sr" id="h-fq-h">From our founder</h2><blockquote className="gd">“Shizuka was created because I saw the need for a quick, discreet trading platform, perfect for my clients who wish to maintain their privacy and release funds at the moment they’re needed.”</blockquote><p><b>Shivam Agarwal</b>, Founder &amp; CEO. Shizuka means ‘quiet’ in Japanese. That’s how we do business.</p></div>

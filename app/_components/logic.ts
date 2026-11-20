@@ -51,13 +51,30 @@ export function useSite() {
     const t = setInterval(() => setStep((s) => (s + 1) % 4), 5200);
     return () => clearInterval(t);
   }, [cycle]);
-  // The floating WhatsApp pill waits until the hero (which has its own call to action) has scrolled away.
+  // Stacks: each .stack holds its first section while the next slides over it. --stick lets a section taller than the
+  // window scroll to its end before it holds; --cover (0 to 1) is how much of it is covered. The floating WhatsApp pill
+  // appears once the chauffeur band has covered half the hero (the hero has its own call to action).
   useEffect(() => {
-    const root = rootRef.current, hero = root?.querySelector(".hero");
-    if (!root || !hero) return;
-    const io = new IntersectionObserver(([e]) => root.toggleAttribute("data-past", !e.isIntersecting), { threshold: 0 });
-    io.observe(hero);
-    return () => io.disconnect();
+    const root = rootRef.current;
+    const stacks = root ? Array.from(root.querySelectorAll<HTMLElement>(".stack")) : [];
+    if (!root || !stacks.length) return;
+    let raf = 0;
+    const measure = () => {
+      raf = 0;
+      const wh = window.innerHeight;
+      stacks.forEach((s, n) => {
+        const base = s.firstElementChild as HTMLElement, over = s.lastElementChild as HTMLElement;
+        const bh = base.offsetHeight, view = Math.min(bh, wh), top = over.getBoundingClientRect().top;
+        s.style.setProperty("--stick", Math.min(0, wh - bh) + "px");
+        s.style.setProperty("--cover", Math.min(1, Math.max(0, 1 - top / view)).toFixed(3));
+        if (n === 0) root.toggleAttribute("data-past", top < view * 0.5);
+      });
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(measure); };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    measure();
+    return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); if (raf) cancelAnimationFrame(raf); };
   }, []);
 
   const v = useMemo(() => {
